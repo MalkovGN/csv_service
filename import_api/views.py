@@ -2,6 +2,7 @@ import csv
 
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 
 from . import serializers, models
 from csv_import import settings
@@ -39,6 +40,7 @@ class UploadView(generics.ListCreateAPIView):
 
 class AllFilesView(generics.GenericAPIView):
     serializer_class = serializers.FileInfoSerializer
+    renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def get(self, request, *args, **kwargs):
         response = []
@@ -60,6 +62,7 @@ class AllFilesView(generics.GenericAPIView):
 
 class FileInfoView(generics.GenericAPIView):
     serializer_class = serializers.FileInfoSerializer
+    renderer_classes = [JSONRenderer]
 
     def get(self, request, pk):
         file = models.FileModel.objects.get(pk=pk)
@@ -98,7 +101,6 @@ class FileInfoView(generics.GenericAPIView):
             {
                 'name': file_name.split('/')[-1],
                 'data': column_info,
-                'param': query_param,
             }
         )
 
