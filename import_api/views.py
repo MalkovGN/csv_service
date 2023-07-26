@@ -1,4 +1,5 @@
 import csv
+import pandas as pd
 
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -68,6 +69,12 @@ class FileInfoView(generics.GenericAPIView):
         file = models.FileModel.objects.get(pk=pk)
         file_name = file.file.name
         column_info = {}
+        query_param = self.request.query_params.get('columns')
+        if query_param is not None:
+            query_list = query_param.split(',')
+            df = pd.read_csv(f'{settings.MEDIA_ROOT}/{file_name}')
+            sorted_df = df.sort_values(by=query_list)
+            sorted_df.to_csv(f'{settings.MEDIA_ROOT}/{file_name}', index=False)
         with open(f"{settings.MEDIA_ROOT}/{file_name}", 'r') as f:
             csv_reader = csv.reader(f)
             for idx, row in enumerate(csv_reader):
@@ -89,14 +96,6 @@ class FileInfoView(generics.GenericAPIView):
                         )
                         counter += 1
 
-        query_param = self.request.query_params.get('column')
-        if query_param is not None:
-            return Response(
-                {
-                    'name': file_name.split('/')[-1],
-                    'data': {f'{query_param}': column_info[f'{query_param}']},
-                }
-            )
         return Response(
             {
                 'name': file_name.split('/')[-1],
